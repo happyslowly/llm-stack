@@ -1,0 +1,40 @@
+#!/bin/zsh
+
+bin=$(dirname $(readlink -f $0))
+parent=$(dirname $bin)
+
+source $parent/config/config.sh
+
+echo "🚀 Starting LLM Stack..."
+
+# Start llama-swap server
+echo "🦙 Starting llama-swap server..."
+if command -v llama-swap &>/dev/null; then
+  pushd -q $parent
+  llama-swap -config $parent/config/llama-swap/config.yaml -listen :12345 >$parent/logs/llama-swap.log 2>&1 &
+  LLAMA_PID=$!
+  echo $LLAMA_PID >$parent/data/llama-swap.pid
+  echo "✅ llama-swap started (PID: $LLAMA_PID)"
+  popd -q
+else
+  echo "⚠️ llama-swap not found in PATH, please start manually on port 12345"
+fi
+
+# Wait a moment for llama-swap to initialize
+sleep 2
+
+if [ -n "$ENABLE_OPEN_WEBUI" ]; then
+  # Start Docker services
+  echo "🐳 Starting Docker services..."
+  docker-compose up -d
+fi
+
+echo "✅ Stack started!"
+echo "🦙 llama-swap: http://localhost:12345"
+if [ -n "$ENABLE_OPEN_WEBUI" ]; then
+  echo "📱 Open WebUI: http://localhost:3000"
+  echo "🔍 SearXNG: http://localhost:3001"
+fi
+echo ""
+
+echo "📋 Check logs with: llm-logs"

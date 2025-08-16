@@ -1,0 +1,36 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    environment:
+      - OPENAI_API_BASE_URL=http://host.docker.internal:12345/v1
+      - OPENAI_API_KEY=dummy
+      - ENABLE_WEB_SEARCH=true
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+      - TZ=America/Los_Angeles
+    volumes:
+      - open-webui-data:/app/backend/data
+      - ./logs:/app/logs
+    depends_on:
+      - searxng
+    restart: unless-stopped
+
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    ports:
+      - "3001:8080"
+    volumes:
+      - ./config/searxng/settings.yml:/etc/searxng/settings.yml:ro
+      - ./logs:/var/log/searxng
+    restart: unless-stopped
+
+volumes:
+  open-webui-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/open-webui

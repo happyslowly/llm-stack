@@ -1,0 +1,19 @@
+use_default_settings: true
+server:
+  secret_key: "your-secret-key-change-this"
+  limiter: false
+  public_instance: false
+  image_proxy: false
+search:
+  safe_search: 1
+  default_lang: "en"
+  formats:
+    - html
+    - json
+engines:
+  - name: duckduckgo
+    disabled: false
+  - name: google
+    disabled: false
+  - name: bing
+    disabled: false

@@ -1,0 +1,28 @@
+#!/bin/zsh
+
+bin=$(dirname $(readlink -f $0))
+parent=$(dirname $bin)
+
+source $parent/config/config.sh
+
+echo "🛑 Stopping LLM Stack..."
+
+# Stop Docker services
+if [ -n "$ENABLE_OPEN_WEBUI" ]; then
+  docker-compose down
+fi
+
+# Stop llama-swap if running
+if [ -f $parent/data/llama-swap.pid ]; then
+  LLAMA_PID=$(cat $parent/data/llama-swap.pid)
+  if ps -p $LLAMA_PID >/dev/null 2>&1; then
+    echo "🦙 Stopping llama-swap (PID: $LLAMA_PID)..."
+    kill $LLAMA_PID
+    rm $parent/data/llama-swap.pid
+  else
+    echo "🦙 llama-swap process not found"
+    rm $parent/data/llama-swap.pid
+  fi
+fi
+
+echo "✅ Stack stopped!"

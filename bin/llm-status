@@ -1,0 +1,56 @@
+#!/bin/zsh
+
+bin=$(dirname $(readlink -f $0))
+parent=$(dirname $bin)
+
+source $parent/config/config.sh
+
+echo "📊 LLM Stack Status:"
+echo ""
+
+# Check llama-swap
+if [ -f $parent/data/llama-swap.pid ]; then
+  LLAMA_PID=$(cat $parent/data/llama-swap.pid)
+  if ps -p $LLAMA_PID >/dev/null 2>&1; then
+    echo "🦙 llama-swap: ✅ Running (PID: $LLAMA_PID)"
+    if curl -s http://localhost:12345/health &>/dev/null; then
+      echo "   └─ API: ✅ Responding on port 12345"
+    else
+      echo "   └─ API: ⚠️  Not responding on port 12345"
+    fi
+  else
+    echo "🦙 llama-swap: ❌ Not running"
+  fi
+else
+  echo "🦙 llama-swap: ❌ Not started"
+fi
+
+echo ""
+
+if [ -n "$ENABLE_OPEN_WEBUI" ]; then
+  # Check Docker services
+  echo "🐳 Docker Services:"
+  docker-compose ps
+fi
+
+# Check ports
+echo "🌐 Port Status:"
+if nc -z localhost 12345 2>/dev/null; then
+  echo "   llama-swap (12345): ✅"
+else
+  echo "   llama-swap (12345): ❌"
+fi
+
+if [ -n "$ENABLE_OPEN_WEBUI" ]; then
+  if nc -z localhost 3000 2>/dev/null; then
+    echo "   Open WebUI (3000): ✅"
+  else
+    echo "   Open WebUI (3000): ❌"
+  fi
+
+  if nc -z localhost 3001 2>/dev/null; then
+    echo "   SearXNG (3001):    ✅"
+  else
+    echo "   SearXNG (3001):    ❌"
+  fi
+fi
