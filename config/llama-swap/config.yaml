@@ -72,3 +72,15 @@ models:
       --numa isolate
       --flash-attn
       --jinja
+  "Qwen3-Embedding-0.6B-Q8_0":
+    cmd: |
+      llama-server
+      --model models/Qwen3-Embedding-0.6B-Q8_0.gguf
+      --port ${PORT}
+      --embeddings
+      --n-gpu-layers -1
+groups:
+  "forever":
+    persistent: true
+    members:
+      - "Qwen3-Embedding-0.6B-Q8_0"
